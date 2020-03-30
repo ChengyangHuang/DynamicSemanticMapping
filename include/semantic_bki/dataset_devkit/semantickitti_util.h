@@ -61,6 +61,8 @@ class SemanticKITTIData {
 
     bool process_scans(std::string input_data_dir, std::string input_label_dir, int scan_num, bool query, bool visualize) {
       semantic_bki::point3f origin;
+      //std::vector<int> dyn_classes = {1,2,3,4,5,6,7,8};
+      //std::vector<std::vector<semantic_bki>
       for (int scan_id  = 0; scan_id < scan_num; ++scan_id) {
         char scan_id_c[256];
         sprintf(scan_id_c, "%06d", scan_id);
