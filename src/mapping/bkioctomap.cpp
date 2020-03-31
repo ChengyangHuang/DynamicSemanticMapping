@@ -308,9 +308,7 @@ namespace semantic_bki {
 
         vector<int> dyn_classes = {1, 2, 3, 4, 5, 6, 7, 8};
         vector<vector<SemanticOcTreeNode>> dyn_nodes(dyn_classes.size());
-        vector<point3f> dyn_nodes_pts;//(dyn_classes.size());
-
-        std::cout << "declared dynamics, number of dyn classes: " << dyn_classes.size() << "\n";
+        vector<vector<point3f>> dyn_nodes_pts(dyn_classes.size());
 
 #ifdef OPENMP
 #pragma omp parallel for schedule(dynamic)
@@ -332,7 +330,6 @@ namespace semantic_bki {
                 xs.push_back(p.y());
                 xs.push_back(p.z());
             }
-            //std::cout << "xs size: "<<xs.size() << std::endl;
 
             ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
@@ -352,13 +349,14 @@ namespace semantic_bki {
                     int k = 0;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
                         if (ybars[j][*dc] > 0.0) {
-                            //std::cout << "in if, r u crashin?\n";
-                            // might add the same node multiple times?
-                            //dyn_nodes[k].push_back(node);
-                            //point3f temp = block->get_loc(leaf_it);
-                            point3f tmp(1,2,3);
-                            //dyn_nodes_pts.push_back(block->get_loc(leaf_it));
-                            dyn_nodes_pts.push_back(tmp);
+#ifdef OPENMP
+#pragma omp critical
+#endif
+                            {
+                                // might add the same node multiple times?
+                                dyn_nodes[k].push_back(node);
+                                dyn_nodes_pts[k].push_back(block->get_loc(leaf_it));
+                            };
                         }
                     }
                 }
@@ -367,9 +365,6 @@ namespace semantic_bki {
 #ifdef DEBUG
         Debug_Msg("Prediction done");
 #endif
-
-        std::cout << "got here\n";
-        //std::cout << "dynamic nodes: " << dyn_nodes_pts[0][0] << "\n";
 
         ////////// Cleaning /////////////////////////////
         /////////////////////////////////////////////////
