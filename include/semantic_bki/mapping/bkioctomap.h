@@ -7,6 +7,8 @@
 #include "rtree.h"
 #include "bkiblock.h"
 #include "bkioctree_node.h"
+//#include "KDTree.h"
+#include "dyn_nodes.h"
 
 namespace semantic_bki {
 
@@ -86,6 +88,10 @@ namespace semantic_bki {
         void insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
                                float free_res = 2.0f,
                                float max_range = -1);
+
+        void insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+                               float free_res, float max_range, std::vector<int> dyn_classes,
+                               DynamicNodes dyn_nodes);
 
         //void insert_training_data(const GPPointCloud &cloud);
 

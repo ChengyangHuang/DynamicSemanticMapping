@@ -4,6 +4,10 @@
 #include "bkioctomap.h"
 #include "bki.h"
 
+#include "Point.h"
+#include "KDTree.h"
+#include "dyn_nodes.h"
+
 using std::vector;
 
 // #define DEBUG true;
@@ -374,161 +378,230 @@ namespace semantic_bki {
         rtree.RemoveAll();
     }
 
-//         void SemanticBKIOctoMap::insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
-//                                       float free_res, float max_range, vector<int> dyn_classes, 
-//                                       vector<vector<SemanticOcTreeNode>> &dyn_nodes, vector<vector<point3f>> &dyn_nodes_pts) {
+    void SemanticBKIOctoMap::insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+                                       float free_res, float max_range, std::vector<int> dyn_classes,
+                                       DynamicNodes dyn_nodes) {
 
-// #ifdef DEBUG
-//         Debug_Msg("Insert pointcloud: " << "cloud size: " << cloud.size() << " origin: " << origin);
-// #endif
+#ifdef DEBUG
+        Debug_Msg("Insert pointcloud: " << "cloud size: " << cloud.size() << " origin: " << origin);
+#endif
 
-//         ////////// Preparation //////////////////////////
-//         /////////////////////////////////////////////////
-//         GPPointCloud xy;
-//         get_training_data(cloud, origin, ds_resolution, free_res, max_range, xy);
-// #ifdef DEBUG
-//         Debug_Msg("Training data size: " << xy.size());
-// #endif
-//         // If pointcloud after max_range filtering is empty
-//         //  no need to do anything
-//         if (xy.size() == 0) {
-//             return;
-//         }
+        ////////// Preparation //////////////////////////
+        /////////////////////////////////////////////////
+        GPPointCloud xy;
+        get_training_data(cloud, origin, ds_resolution, free_res, max_range, xy);
+#ifdef DEBUG
+        Debug_Msg("Training data size: " << xy.size());
+#endif
+        // If pointcloud after max_range filtering is empty
+        //  no need to do anything
+        if (xy.size() == 0) {
+            return;
+        }
 
-//         point3f lim_min, lim_max;
-//         bbox(xy, lim_min, lim_max);
+        point3f lim_min, lim_max;
+        bbox(xy, lim_min, lim_max);
 
-//         vector<BlockHashKey> blocks;
-//         get_blocks_in_bbox(lim_min, lim_max, blocks);
+        vector<BlockHashKey> blocks;
+        get_blocks_in_bbox(lim_min, lim_max, blocks);
 
-//         for (auto it = xy.cbegin(); it != xy.cend(); ++it) {
-//             float p[] = {it->first.x(), it->first.y(), it->first.z()};
-//             rtree.Insert(p, p, const_cast<GPPointType *>(&*it));
-//         }
-//         /////////////////////////////////////////////////
+        for (auto it = xy.cbegin(); it != xy.cend(); ++it) {
+            float p[] = {it->first.x(), it->first.y(), it->first.z()};
+            rtree.Insert(p, p, const_cast<GPPointType *>(&*it));
+        }
+        /////////////////////////////////////////////////
 
-//         ////////// Training /////////////////////////////
-//         /////////////////////////////////////////////////
-//         vector<BlockHashKey> test_blocks;
-//         std::unordered_map<BlockHashKey, SemanticBKI3f *> bgk_arr;
-// #ifdef OPENMP
-// #pragma omp parallel for schedule(dynamic)
-// #endif
-//         for (int i = 0; i < blocks.size(); ++i) {
-//             BlockHashKey key = blocks[i];
-//             ExtendedBlock eblock = get_extended_block(key);
-//             if (has_gp_points_in_bbox(eblock))
-// #ifdef OPENMP
-// #pragma omp critical
-// #endif
-//             {
-//                 test_blocks.push_back(key);
-//             };
+        ////////// Training /////////////////////////////
+        /////////////////////////////////////////////////
+        vector<BlockHashKey> test_blocks;
+        std::unordered_map<BlockHashKey, SemanticBKI3f *> bgk_arr;
+#ifdef OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+        for (int i = 0; i < blocks.size(); ++i) {
+            BlockHashKey key = blocks[i];
+            ExtendedBlock eblock = get_extended_block(key);
+            if (has_gp_points_in_bbox(eblock))
+#ifdef OPENMP
+#pragma omp critical
+#endif
+            {
+                test_blocks.push_back(key);
+            };
 
-//             GPPointCloud block_xy;
-//             get_gp_points_in_bbox(key, block_xy);
-//             if (block_xy.size() < 1)
-//                 continue;
+            GPPointCloud block_xy;
+            get_gp_points_in_bbox(key, block_xy);
+            if (block_xy.size() < 1)
+                continue;
 
-//             vector<float> block_x, block_y;
-//             for (auto it = block_xy.cbegin(); it != block_xy.cend(); ++it) {
-//                 block_x.push_back(it->first.x());
-//                 block_x.push_back(it->first.y());
-//                 block_x.push_back(it->first.z());
-//                 block_y.push_back(it->second);
+            vector<float> block_x, block_y;
+            for (auto it = block_xy.cbegin(); it != block_xy.cend(); ++it) {
+                block_x.push_back(it->first.x());
+                block_x.push_back(it->first.y());
+                block_x.push_back(it->first.z());
+                block_y.push_back(it->second);
             
             
-//             //std::cout << search(it->first.x(), it->first.y(), it->first.z()) << std::endl;
-//             }
+            //std::cout << search(it->first.x(), it->first.y(), it->first.z()) << std::endl;
+            }
 
-//             SemanticBKI3f *bgk = new SemanticBKI3f(SemanticOcTreeNode::num_class, SemanticOcTreeNode::sf2, SemanticOcTreeNode::ell);
-//             bgk->train(block_x, block_y);
-// #ifdef OPENMP
-// #pragma omp critical
-// #endif
-//             {
-//                 bgk_arr.emplace(key, bgk);
-//             };
-//         }
-// #ifdef DEBUG
-//         Debug_Msg("Training done");
-//         Debug_Msg("Prediction: block number: " << test_blocks.size());
-// #endif
-//         /////////////////////////////////////////////////
+            SemanticBKI3f *bgk = new SemanticBKI3f(SemanticOcTreeNode::num_class, SemanticOcTreeNode::sf2, SemanticOcTreeNode::ell);
+            bgk->train(block_x, block_y);
+#ifdef OPENMP
+#pragma omp critical
+#endif
+            {
+                bgk_arr.emplace(key, bgk);
+            };
+        }
+#ifdef DEBUG
+        Debug_Msg("Training done");
+        Debug_Msg("Prediction: block number: " << test_blocks.size());
+#endif
+        /////////////////////////////////////////////////
 
-//         ////////// Prediction ///////////////////////////
-//         /////////////////////////////////////////////////
+        ////////// Prediction ///////////////////////////
+        /////////////////////////////////////////////////
+        
+        /////// KD TREES ////////
+        //vector<vector<std::pair<Point<3>, int>>> dataset(dyn_classes.size());
+        /////// KD TREES ////////
 
-//         //vector<int> dynamic_classes = {1, 2, 3, 4, 5, 6, 7, 8};
-//         //vector<vector<SemanticOcTreeNode> dyn_nodes(dyn_classes.size());
-//         //vector<vector<point3f> dyn_nodes_pts(dyn_classes.size());
-//         dyn_nodes.clear();
-//         dyn_nodes = vector<vector<SemanticOcTreeNode>>(dyn_classes.size());
-//         dyn_nodes_pts.clear();
-//         dyn_nodes_pts = vector<vector<point3f>>(dyn_classes.size());
-//         std::cout << "declared dynamics, number of dyn classes: " << dyn_classes.size() << "\n";
+#ifdef OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+        for (int i = 0; i < test_blocks.size(); ++i) {
+            BlockHashKey key = test_blocks[i];
+#ifdef OPENMP
+#pragma omp critical
+#endif
+            {
+                if (block_arr.find(key) == block_arr.end())
+                    block_arr.emplace(key, new Block(hash_key_to_block(key)));
+            };
+            Block *block = block_arr[key];
+            vector<float> xs;
+            for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it) {
+                point3f p = block->get_loc(leaf_it);
+                xs.push_back(p.x());
+                xs.push_back(p.y());
+                xs.push_back(p.z());
+            }
 
-// #ifdef OPENMP
-// #pragma omp parallel for schedule(dynamic)
-// #endif
-//         for (int i = 0; i < test_blocks.size(); ++i) {
-//             BlockHashKey key = test_blocks[i];
-// #ifdef OPENMP
-// #pragma omp critical
-// #endif
-//             {
-//                 if (block_arr.find(key) == block_arr.end())
-//                     block_arr.emplace(key, new Block(hash_key_to_block(key)));
-//             };
-//             Block *block = block_arr[key];
-//             vector<float> xs;
-//             for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it) {
-//                 point3f p = block->get_loc(leaf_it);
-//                 xs.push_back(p.x());
-//                 xs.push_back(p.y());
-//                 xs.push_back(p.z());
-//             }
-//             //std::cout << "xs size: "<<xs.size() << std::endl;
+            ExtendedBlock eblock = block->get_extended_block();
+            for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
+                auto bgk = bgk_arr.find(*block_it);
+                if (bgk == bgk_arr.end())
+                    continue;
 
-//             ExtendedBlock eblock = block->get_extended_block();
-//             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
-//                 auto bgk = bgk_arr.find(*block_it);
-//                 if (bgk == bgk_arr.end())
-//                     continue;
+               	vector<vector<float>> ybars;
+		            bgk->second->predict(xs, ybars);
 
-//                	vector<vector<float>> ybars;
-// 		            bgk->second->predict(xs, ybars);
+                int j = 0;
+                for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
 
-//                 int j = 0;
-//                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
-//                     SemanticOcTreeNode &node = leaf_it.get_node();
-//                     // Only need to update if kernel density total kernel density est > 0
-//                     //if (ybar[j] > 0.0)
-//                     node.update(ybars[j]);
-//                     int k = 0;
-//                     for (auto dc = dyn_classes.begin(); dc != dyn_classes.end(); ++dc, ++k) {
-//                         if (ybars[i][dc] > 0.0) {
-//                             // might add the same node multiple times?
-//                             dyn_nodes[k].push_back(node);
-//                             dyn_nodes_pts[k].push_back(block->get_loc(leaf_it));
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-// #ifdef DEBUG
-//         Debug_Msg("Prediction done");
-// #endif
+                    //std::cout << "enter node update block\n";
 
-//         //std::cout << "dynamic nodes: " << dyn_nodes_pts << "\n";
+                    SemanticOcTreeNode &node = leaf_it.get_node();
+                    // Only need to update if kernel density total kernel density est > 0
+                    //if (ybar[j] > 0.0)
+                    bool found_dynamic = false;
+                    vector<int> dyn_classes_measured;
 
-//         ////////// Cleaning /////////////////////////////
-//         /////////////////////////////////////////////////
-//         for (auto it = bgk_arr.begin(); it != bgk_arr.end(); ++it)
-//             delete it->second;
+                    /////// KD TREES ////////
+                    // point3f pt_as_vec3 = block->get_loc(leaf_it);
+                    // Point<3> pt;
+                    // vector<float> pt_as_vec = {pt_as_vec3.x(), pt_as_vec3.y(), pt_as_vec3.z()};
+                    // std::copy(pt_as_vec.begin(), pt_as_vec.end(), pt.begin());
+                    /////// KD TREES ////////
 
-//         rtree.RemoveAll();
-//     }
+                    int k = 0;
+                    for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
+                        if (ybars[j][*dc] > 0.0) {
+#ifdef OPENMP
+#pragma omp critical
+#endif
+                            {
+                                found_dynamic = true;
+                                dyn_classes_measured.push_back(k);
+
+                                std::cout << "adding node\n";
+
+                                dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
+                            };
+                        }
+                    }
+
+                    if (found_dynamic && !dyn_nodes.isempty()) {
+
+                        /////// KD TREES ////////
+                        // find nearest dynamic node
+                        // int nearest_node = -1;
+                        // int nearest_node_class = -1;
+                        // float nearest_distance = std::numeric_limits<float>::infinity();
+                        // for (int k = 0; k <= dyn_classes_measured.size(); k++) {
+                        //     std::cout << "inforloop for tree: " << k << "\n";
+                        //     std::pair<float, int> nearest = dyn_points[dyn_classes_measured[k]].nearestNeighbor(pt);
+                        //     std::cout<< "first: " << nearest.first << "\n";
+                        //     if (nearest.first < nearest_distance) {
+                        //         std::cout<< "inifstatement\n";
+                        //         nearest_node = nearest.second;
+                        //         nearest_node_class = k;
+                        //         nearest_distance = nearest.first;
+                        //     }
+                        // }
+                        //bool nn = nearest_node >= 0;
+                        //bool nnc = nearest_node_class >=0;
+                        /////// KD TREES ////////
+
+                        std::cout << "Found and not empty\n";
+                        SemanticOcTreeNode *prev_node = dyn_nodes.find_nearest(dyn_classes_measured, block->get_loc(leaf_it));
+
+                        if (prev_node) {
+                            std::cout << "updating alphas\n";
+
+                            // update using that nodes alphas
+                            node.set_alphas(dyn_classes, prev_node->ms);
+
+                            // TODO: set nodes velocity using motion model
+
+                        } 
+                        else {
+                            std::cout << "standard update\n";
+                            node.update(ybars[j]);
+                        }
+
+                    } 
+                    else {
+                        node.update(ybars[j]);
+                    }
+                }
+            }
+        }  
+
+        dyn_nodes.update();
+
+        /////// KD TREES ////////
+        // dyn_nodes.clear();
+        // dyn_points.clear();
+        // // construct KD tree with constructed points
+        // for (int i = 0; i < dataset.size(); i++) {
+        //     KDTree<3, int> kd(dataset[i]);
+        //     dyn_points.push_back(kd); 
+        // }
+        /////// KD TREES ////////
+
+#ifdef DEBUG
+        Debug_Msg("Prediction done");
+#endif
+
+        ////////// Cleaning /////////////////////////////
+        /////////////////////////////////////////////////
+        for (auto it = bgk_arr.begin(); it != bgk_arr.end(); ++it)
+            delete it->second;
+
+        rtree.RemoveAll();
+    }
 
     void SemanticBKIOctoMap::get_bbox(point3f &lim_min, point3f &lim_max) const {
         lim_min = point3f(0, 0, 0);

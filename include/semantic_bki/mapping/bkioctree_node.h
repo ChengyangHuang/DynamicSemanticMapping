@@ -44,6 +44,11 @@ namespace semantic_bki {
          */
         void update(std::vector<float>& ybars);
 
+        /**
+         * Set alpha values directly for a class
+         */
+        void set_alphas(std::vector<int> dyn_classes, std::vector<float>& alphas);
+
         /// Get probability of occupancy.
         void get_probs(std::vector<float>& probs) const;
 
