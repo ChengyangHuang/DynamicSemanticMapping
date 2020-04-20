@@ -525,8 +525,6 @@ namespace semantic_bki {
                                 found_dynamic = true;
                                 dyn_classes_measured.push_back(k);
 
-                                std::cout << "adding node\n";
-
                                 dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
                             };
                         }
