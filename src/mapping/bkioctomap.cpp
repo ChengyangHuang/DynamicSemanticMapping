@@ -380,7 +380,7 @@ namespace semantic_bki {
 
     void SemanticBKIOctoMap::insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
                                        float free_res, float max_range, std::vector<int> dyn_classes,
-                                       DynamicNodes dyn_nodes) {
+                                       DynamicNodes &dyn_nodes) {
 
 #ifdef DEBUG
         Debug_Msg("Insert pointcloud: " << "cloud size: " << cloud.size() << " origin: " << origin);
@@ -505,6 +505,7 @@ namespace semantic_bki {
                     SemanticOcTreeNode &node = leaf_it.get_node();
                     // Only need to update if kernel density total kernel density est > 0
                     //if (ybar[j] > 0.0)
+
                     bool found_dynamic = false;
                     vector<int> dyn_classes_measured;
 
@@ -514,7 +515,7 @@ namespace semantic_bki {
                     // vector<float> pt_as_vec = {pt_as_vec3.x(), pt_as_vec3.y(), pt_as_vec3.z()};
                     // std::copy(pt_as_vec.begin(), pt_as_vec.end(), pt.begin());
                     /////// KD TREES ////////
-
+                    
                     int k = 0;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
                         if (ybars[j][*dc] > 0.0) {
@@ -522,15 +523,14 @@ namespace semantic_bki {
 #pragma omp critical
 #endif
                             {
-                                found_dynamic = true;
-                                dyn_classes_measured.push_back(k);
-
-                                dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
+                            found_dynamic = true;
+                            dyn_classes_measured.push_back(k);
+                            dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
                             };
                         }
                     }
 
-                    if (found_dynamic && !dyn_nodes.isempty()) {
+                    if (found_dynamic && !dyn_nodes.empty) {
 
                         /////// KD TREES ////////
                         // find nearest dynamic node
@@ -552,27 +552,22 @@ namespace semantic_bki {
                         //bool nnc = nearest_node_class >=0;
                         /////// KD TREES ////////
 
-                        std::cout << "Found and not empty\n";
-                        SemanticOcTreeNode *prev_node = dyn_nodes.find_nearest(dyn_classes_measured, block->get_loc(leaf_it));
+                        std::pair<SemanticOcTreeNode, double> nearest = dyn_nodes.find_nearest(dyn_classes_measured, block->get_loc(leaf_it));
 
-                        if (prev_node) {
-                            std::cout << "updating alphas\n";
+                        double max_distance = 1.0;
+                        if ( nearest.second < max_distance) {
+                            SemanticOcTreeNode prev_node = nearest.first;
 
                             // update using that nodes alphas
-                            node.set_alphas(dyn_classes, prev_node->ms);
+                            // TODO: only update alphas for classes that were measured
+                            node.set_alphas(dyn_classes, prev_node.ms);
 
                             // TODO: set nodes velocity using motion model
 
-                        } 
-                        else {
-                            std::cout << "standard update\n";
-                            node.update(ybars[j]);
                         }
 
-                    } 
-                    else {
-                        node.update(ybars[j]);
                     }
+                    node.update(ybars[j]);
                 }
             }
         }  

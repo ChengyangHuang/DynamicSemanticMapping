@@ -91,7 +91,7 @@ namespace semantic_bki {
 
         void insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
                                float free_res, float max_range, std::vector<int> dyn_classes,
-                               DynamicNodes dyn_nodes);
+                               DynamicNodes &dyn_nodes);
 
         //void insert_training_data(const GPPointCloud &cloud);
 
