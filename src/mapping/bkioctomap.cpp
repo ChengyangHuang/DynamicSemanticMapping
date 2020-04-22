@@ -567,7 +567,13 @@ namespace semantic_bki {
                         }
 
                     }
-                    node.update(ybars[j]);
+                    // if(outside vision){
+                    //     node.update_dacay(ybars[j], dyn_classes);
+                    // }
+                    // else{
+                        // node.update_dacay(ybars[j], dyn_classes);
+                    // }
+                    node.update_decay(ybars[j], dyn_classes);
                 }
             }
         }  

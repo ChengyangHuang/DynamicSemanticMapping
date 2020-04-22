@@ -49,6 +49,37 @@ namespace semantic_bki {
         state = State::OCCUPIED;
     }
 
+    void Semantics::update_decay(std::vector<float>& ybars, std::vector<int> dyn_classes) {
+      assert(ybars.size() == num_class);
+      classified = true;
+      for (int i = 0; i < num_class; ++i){
+        if (std::find(dyn_classes.begin(), dyn_classes.end(), i) != dyn_classes.end()){
+          if (ybars[i] < 1) {
+            // if (ms[i] > 1) ms[i] = ms[i] - 1;
+            // else ms[i] = 0;
+            (ms[i] > 1)? (ms[i] - 1):ms[i] = 0;
+          }
+          else{
+            ms[i] += ybars[i];
+          }
+          // ms[i] = 0;
+        }
+        else{
+          ms[i] += ybars[i];
+        }
+      }
+
+      std::vector<float> probs(num_class);
+      get_probs(probs);
+
+      semantics = std::distance(probs.begin(), std::max_element(probs.begin(), probs.end()));
+
+      if (semantics == 0)
+        state = State::FREE;
+      else
+        state = State::OCCUPIED;
+    }
+
     void Semantics::set_alphas(std::vector<int> dyn_classes, std::vector<float>& alphas) {
       assert(alphas.size() == num_class);
       for (int i = 0; i < dyn_classes.size(); i++) {
