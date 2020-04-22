@@ -13,18 +13,21 @@ namespace semantic_bki {
     class DynamicNodes {
         
         private:
-        std::vector<int> dyn_classes;
-        std::vector<std::vector<SemanticOcTreeNode>> dyn_nodes_prev;
-        std::vector<std::vector<point3f>> dyn_points_prev;
-        std::vector<std::vector<SemanticOcTreeNode>> dyn_nodes_curr;
-        std::vector<std::vector<point3f>> dyn_points_curr;
-        bool empty;
+            std::vector<int> dyn_classes;
+            std::vector<std::vector<SemanticOcTreeNode>> dyn_nodes_prev;
+            std::vector<std::vector<point3f>> dyn_points_prev;
+            std::vector<std::vector<SemanticOcTreeNode>> dyn_nodes_curr;
+            std::vector<std::vector<point3f>> dyn_points_curr;
 
         
         public:
+
+            bool empty;
+
             //Constructor
             DynamicNodes(std::vector<int> dyn_classes_in) {
-                dyn_classes = dyn_classes_in;
+                dyn_classes = std::vector<int>(dyn_classes_in.size());
+                std::copy(dyn_classes_in.begin(), dyn_classes_in.end(), dyn_classes.begin());
                 dyn_nodes_prev = std::vector<std::vector<SemanticOcTreeNode>>(dyn_classes.size());
                 dyn_points_prev = std::vector<std::vector<point3f>>(dyn_classes.size());
                 dyn_nodes_curr = std::vector<std::vector<SemanticOcTreeNode>>(dyn_classes.size());
@@ -35,25 +38,31 @@ namespace semantic_bki {
             ~DynamicNodes() {}
 
             void update() {
-                dyn_nodes_prev = dyn_nodes_curr;
-                dyn_points_prev = dyn_points_curr;
-                dyn_nodes_curr.clear();
-                dyn_points_curr.clear();
+                for (int i = 0; i < dyn_classes.size(); i++) {
+                    // copy all current nodes and points to previous
+                    dyn_nodes_prev[i].clear();
+                    dyn_points_prev[i].clear();
+                    for (int j = 0; j < dyn_nodes_prev[i].size(); i++) {
+                        dyn_nodes_prev[i].push_back(dyn_nodes_curr[i][j]);
+                        dyn_points_prev[i].push_back(dyn_points_curr[i][j]);
+                    }
+
+                    // clear curr nodes and points
+                    dyn_nodes_curr[i].clear();
+                    dyn_points_curr[i].clear();
+                }
                 empty = false;
             }
 
             //Adds the input node to dyn_nodes and dyn_points
-            void add_node(int cl, SemanticOcTreeNode node, point3f point) {
+            void add_node(int cl, SemanticOcTreeNode &node, point3f point) {
+                //std::cout << "class: " << cl << ", class size: " << dyn_nodes_curr[cl].size() << "\n";
                 dyn_nodes_curr[cl].push_back(node);
                 dyn_points_curr[cl].push_back(point);
             }
 
-            bool isempty() {
-                return empty;
-            }
-
             //Returns the nearest node to the input point
-            SemanticOcTreeNode *find_nearest(std::vector<int> classes, point3f point) {
+            std::pair<SemanticOcTreeNode, double> find_nearest(std::vector<int> classes, point3f point) {
                 int nearest_node = -1;
                 int nearest_node_class = -1;
                 double nearest_distance = std::numeric_limits<double>::infinity();
@@ -69,10 +78,10 @@ namespace semantic_bki {
                 }
 
                 if (nearest_node <= 0) {
-                    return nullptr;
+                    return std::make_pair(SemanticOcTreeNode(), nearest_distance);
                 } 
                 else {
-                    return &dyn_nodes_prev[nearest_node_class][nearest_node];
+                    return std::make_pair(dyn_nodes_prev[nearest_node_class][nearest_node], nearest_distance);
                 }
             }
     };
