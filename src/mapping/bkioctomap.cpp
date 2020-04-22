@@ -488,19 +488,19 @@ namespace semantic_bki {
                 xs.push_back(p.z());
             }
 
-            // Decay term begin
-            // std::unordered_map<BlockHashKey, std::vector<int>>::iterator dyn_it;
-            for (auto& m : dyn_nodes_decay)
-            {
-                // for (auto& n : m.second)
-                // {
-                auto block = Block(hash_key_to_block(m.first));
-                for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
+            // // Decay term begin
+            // // std::unordered_map<BlockHashKey, std::vector<int>>::iterator dyn_it;
+            // for (auto& m : dyn_nodes_decay)
+            // {
+            //     // for (auto& n : m.second)
+            //     // {
+            //     auto block = Block(hash_key_to_block(m.first));
+            //     for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
 
-                }
-                // }
-            }
-            // Decay term end
+            //     }
+            //     // }
+            // }
+            // // Decay term end
 
             ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
@@ -553,7 +553,7 @@ namespace semantic_bki {
                             };
                         }
                     }
-                    dyn_nodes_indices.emplace(key, dyn_indices);
+                    
 
                     if (found_dynamic && !dyn_nodes.empty) {
 
@@ -600,6 +600,9 @@ namespace semantic_bki {
                     // }
                     node.update_decay(ybars[j], dyn_classes);
                 }
+                // Store Dynamic nodes
+                if (!dyn_indices.empty())
+                    dyn_nodes_decay.emplace(key, dyn_indices);
             }
         }  
 
