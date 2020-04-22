@@ -42,10 +42,12 @@ namespace semantic_bki {
                     // copy all current nodes and points to previous
                     dyn_nodes_prev[i].clear();
                     dyn_points_prev[i].clear();
-                    for (int j = 0; j < dyn_nodes_prev[i].size(); i++) {
+                    for (int j = 0; j < dyn_nodes_curr[i].size(); j++) {
                         dyn_nodes_prev[i].push_back(dyn_nodes_curr[i][j]);
                         dyn_points_prev[i].push_back(dyn_points_curr[i][j]);
                     }
+                    assert(dyn_nodes_prev[i].size() == dyn_nodes_curr[i].size());
+                    assert(dyn_points_prev[i].size() == dyn_points_curr[i].size());
 
                     // clear curr nodes and points
                     dyn_nodes_curr[i].clear();
@@ -56,7 +58,6 @@ namespace semantic_bki {
 
             //Adds the input node to dyn_nodes and dyn_points
             void add_node(int cl, SemanticOcTreeNode &node, point3f point) {
-                //std::cout << "class: " << cl << ", class size: " << dyn_nodes_curr[cl].size() << "\n";
                 dyn_nodes_curr[cl].push_back(node);
                 dyn_points_curr[cl].push_back(point);
             }
@@ -77,7 +78,7 @@ namespace semantic_bki {
                     }
                 }
 
-                if (nearest_node <= 0) {
+                if (nearest_node < 0) {
                     return std::make_pair(SemanticOcTreeNode(), nearest_distance);
                 } 
                 else {
