@@ -520,8 +520,19 @@ namespace semantic_bki {
                     // std::copy(pt_as_vec.begin(), pt_as_vec.end(), pt.begin());
                     /////// KD TREES ////////
                     
+                    // check if measured
+                    bool measured = false;
+                    for (int k = 0; k <= ybars[j].size(); k++) {
+                        if (ybars[j][k] > 0.0) {
+                            measured = true;
+                            break;
+                        }
+                    }
+                    
                     int k = 0;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
+                        // if measured and not dynamic for class k, clear dynamic alpha for class k
+                        // ignores a dynamic object turing into another dynamic object of the same class
                         if (ybars[j][*dc] > 0.0) {
 #ifdef OPENMP
 #pragma omp critical
@@ -531,6 +542,10 @@ namespace semantic_bki {
                             dyn_classes_measured.push_back(k);
                             dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
                             };
+                        } 
+                        else if (measured) {
+                            // clear alpha for class *dc
+                            node.clear_class(*dc);
                         }
                     }
 

@@ -2,6 +2,7 @@ data/
 .ipynb_checkpoints/
 venv
 .vscode/
+movies
 
 # Prerequisites
 *.d

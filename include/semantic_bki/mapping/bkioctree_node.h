@@ -53,6 +53,9 @@ namespace semantic_bki {
          * Decay alpha values directly for a class
          */
         bool decay_alphas(std::vector<int> dyn_classes);
+        
+        /// clear alpha for a particular class
+        void clear_class(int cl);
 
         /// Get probability of occupancy.
         void get_probs(std::vector<float>& probs) const;

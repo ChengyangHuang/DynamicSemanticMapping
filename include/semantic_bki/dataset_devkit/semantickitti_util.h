@@ -104,7 +104,12 @@ class SemanticKITTIData {
         
         map_->dynamic_decay(dyn_classes);
         std::cout << "Decay Done"<<  std::endl;
+
+        // Our method
         map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_, dyn_classes, dyn_nodes);
+        // Baseline
+        //map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
+
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
 
 

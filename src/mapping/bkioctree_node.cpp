@@ -58,7 +58,7 @@ namespace semantic_bki {
       }
     }
 
-    bool Semantics::decay_alphas(std::vector<int> dyn_classes){
+    bool Semantics::decay_alphas(std::vector<int> dyn_classes) {
       float thres = 1.0;
       bool ifDyn = false;
 
@@ -88,5 +88,9 @@ namespace semantic_bki {
         state = State::OCCUPIED;
 
       return ifDyn;
+    }
+
+    void Semantics::clear_class(int cl) {
+      ms[cl] = prior;
     }
 }
