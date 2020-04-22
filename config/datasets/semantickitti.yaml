@@ -2,14 +2,14 @@
 
 # Map information
 resolution: 0.3
-num_class: 21 # Number of classes
+num_class: 20 # Number of classes
 
 # Sampling resolutions
 free_resolution: 100 # Free space sampling resolution
 ds_resolution: 0.1 # Downsampling factor
 
 # Information about range-finder data
-scan_num: 10 # How many scans to use
+scan_num: 30 # How many scans to use
 max_range: -1 # Sensor max range (m)
 
 # Dataset information
