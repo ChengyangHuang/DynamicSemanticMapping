@@ -1,6 +1,7 @@
 data/
 .ipynb_checkpoints/
 venv
+.vscode
 
 # Prerequisites
 *.d
