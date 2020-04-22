@@ -47,7 +47,7 @@ namespace semantic_bki {
         /**
          * Set alpha values directly for a class
          */
-        void set_alphas(std::vector<int> dyn_classes, std::vector<float>& alphas);
+        void set_alphas(std::vector<std::pair<int, int>> dyn_classes, std::vector<float>& alphas);
 
         /**
          * Decay alpha values directly for a class
