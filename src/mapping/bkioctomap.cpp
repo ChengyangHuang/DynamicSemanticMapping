@@ -498,6 +498,7 @@ namespace semantic_bki {
 		            bgk->second->predict(xs, ybars);
 
                 int j = 0;
+                vector<int> dyn_indices;
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
 
                     //std::cout << "enter node update block\n";
@@ -517,6 +518,7 @@ namespace semantic_bki {
                     /////// KD TREES ////////
                     
                     int k = 0;
+                    bool isJIn = false;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
                         if (ybars[j][*dc] > 0.0) {
 #ifdef OPENMP
@@ -526,6 +528,10 @@ namespace semantic_bki {
                             found_dynamic = true;
                             dyn_classes_measured.push_back(k);
                             dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
+                            if (!isJIn){
+                                dyn_indices.push_back(j);
+                                isJIn = true;
+                            }
                             };
                         }
                     }
@@ -569,6 +575,22 @@ namespace semantic_bki {
                     }
                     node.update(ybars[j]);
                 }
+                // Store Dynamic nodes
+                if (dyn_nodes_decay.find(key) == dyn_nodes_decay.end()){
+                    if (!dyn_indices.empty())
+                        dyn_nodes_decay.emplace(key, dyn_indices);
+                }
+                else{
+                    if (!dyn_indices.empty()){
+                        for (auto& idx : dyn_indices){
+                            if(std::find(dyn_nodes_decay[key].begin(), dyn_nodes_decay[key].end(), idx) == dyn_nodes_decay[key].end())
+                                dyn_nodes_decay[key].push_back(idx);
+                        }
+                    }
+                        
+                }
+                   
+                
             }
         }  
 
@@ -594,6 +616,26 @@ namespace semantic_bki {
             delete it->second;
 
         rtree.RemoveAll();
+    }
+
+    void SemanticBKIOctoMap::dynamic_decay(std::vector<int> dyn_classes){
+            //  Everyblock have been seen
+            std::cout << "unordered map size: " << dyn_nodes_decay.size() << std::endl;
+            std::cout << "block arr size: " << block_arr.size() << std::endl;
+            for (auto& m : dyn_nodes_decay)
+            {
+                vector<int> indices = m.second;
+                Block *block = block_arr[m.first];
+                int j = 0;
+                // Every node have dynamic classes
+                for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
+                    if(std::find(indices.begin(), indices.end(), j)!=indices.end()){
+                        SemanticOcTreeNode &node = leaf_it.get_node();
+                        node.decay_alphas(dyn_classes);
+                    }
+                }
+
+            }
     }
 
     void SemanticBKIOctoMap::get_bbox(point3f &lim_min, point3f &lim_max) const {
