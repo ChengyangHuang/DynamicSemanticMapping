@@ -511,8 +511,9 @@ namespace semantic_bki {
                     //if (ybar[j] > 0.0)
 
                     bool found_dynamic = false;
-                    vector<int> dyn_classes_measured;
-                    
+                     // first int is index into list of dynamic classes, second int is index into all classes
+                    vector<std::pair<int, int>> dyn_classes_measured;
+
                     /////// KD TREES ////////
                     // point3f pt_as_vec3 = block->get_loc(leaf_it);
                     // Point<3> pt;
@@ -539,7 +540,7 @@ namespace semantic_bki {
 #endif
                             {
                             found_dynamic = true;
-                            dyn_classes_measured.push_back(k);
+                            dyn_classes_measured.push_back(std::make_pair(k, *dc));
                             dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
                             };
                         } 
@@ -591,7 +592,7 @@ namespace semantic_bki {
 
                             // update using that nodes alphas
                             // TODO: only update alphas for classes that were measured
-                            node.set_alphas(dyn_classes, prev_node.ms);
+                            node.set_alphas(dyn_classes_measured, prev_node.ms);
 
                             // TODO: set nodes velocity using motion model
 

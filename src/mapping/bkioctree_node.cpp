@@ -51,10 +51,10 @@ namespace semantic_bki {
         state = State::OCCUPIED;
     }
 
-    void Semantics::set_alphas(std::vector<int> dyn_classes, std::vector<float>& alphas) {
+    void Semantics::set_alphas(std::vector<std::pair<int, int>> dyn_classes, std::vector<float>& alphas) {
       assert(alphas.size() == num_class);
       for (int i = 0; i < dyn_classes.size(); i++) {
-        ms[dyn_classes[i]] = alphas[dyn_classes[i]];
+        ms[dyn_classes[i].second] = alphas[dyn_classes[i].second];
       }
     }
 

@@ -63,16 +63,16 @@ namespace semantic_bki {
             }
 
             //Returns the nearest node to the input point
-            std::pair<SemanticOcTreeNode, double> find_nearest(std::vector<int> classes, point3f point) {
+            std::pair<SemanticOcTreeNode, double> find_nearest(std::vector<std::pair<int, int>> classes, point3f point) {
                 int nearest_node = -1;
                 int nearest_node_class = -1;
                 double nearest_distance = std::numeric_limits<double>::infinity();
                 for (int i = 0; i < classes.size(); i++) {
-                    for (int j = 0; j < dyn_points_prev[classes[i]].size(); j++) {
-                        double distance = dyn_points_prev[classes[i]][j].distance(point);
+                    for (int j = 0; j < dyn_points_prev[classes[i].first].size(); j++) {
+                        double distance = dyn_points_prev[classes[i].first][j].distance(point);
                         if (distance < nearest_distance) {
                             nearest_node = j;
-                            nearest_node_class = classes[i];
+                            nearest_node_class = classes[i].first;
                             nearest_distance = distance;
                         }
                     }
