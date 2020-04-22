@@ -93,6 +93,8 @@ namespace semantic_bki {
                                float free_res, float max_range, std::vector<int> dyn_classes,
                                DynamicNodes &dyn_nodes);
 
+        void dynamic_decay(std::vector<int> dyn_classes);
+
         //void insert_training_data(const GPPointCloud &cloud);
 
         /// Get bounding box of the map.
@@ -385,6 +387,7 @@ namespace semantic_bki {
         unsigned short block_depth;
         std::unordered_map<BlockHashKey, Block *> block_arr;
         MyRTree rtree;
+        std::unordered_map<BlockHashKey, std::vector<int>> dyn_nodes_decay; 
     };
 
 }

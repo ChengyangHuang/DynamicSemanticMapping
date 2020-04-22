@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <assert.h>
+#include <iostream>
 
 #include "bkioctree_node.h"
 
@@ -53,6 +54,15 @@ namespace semantic_bki {
       assert(alphas.size() == num_class);
       for (int i = 0; i < dyn_classes.size(); i++) {
         ms[dyn_classes[i]] = alphas[dyn_classes[i]];
+      }
+    }
+
+    void Semantics::decay_alphas(std::vector<int> dyn_classes){
+      float thres = 10.0;
+      for (int i = 0; i < dyn_classes.size(); i++) {
+        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+        // ms[dyn_classes[i]] = 0.0;
+        // std::cout << "decay alpha done" << std::endl;
       }
     }
 }

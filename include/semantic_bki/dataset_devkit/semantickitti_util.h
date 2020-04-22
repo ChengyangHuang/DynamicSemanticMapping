@@ -101,9 +101,13 @@ class SemanticKITTIData {
         origin.x() = transform(0, 3);
         origin.y() = transform(1, 3);
         origin.z() = transform(2, 3);
+        
+        map_->dynamic_decay(dyn_classes);
+        std::cout << "Decay Done"<<  std::endl;
         map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_, dyn_classes, dyn_nodes);
         std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        
+
+
         if (query) {
           for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
           query_scan(input_data_dir, query_id);
