@@ -221,6 +221,7 @@ namespace semantic_bki {
             unsigned short index, x, y, z, lim;
             BlockHashKey _block_key;
             point3f current_p;
+            
         };
 
         /// LeafIterator for iterating all leaf nodes in blocks
@@ -385,6 +386,7 @@ namespace semantic_bki {
         unsigned short block_depth;
         std::unordered_map<BlockHashKey, Block *> block_arr;
         MyRTree rtree;
+        std::unordered_map<BlockHashKey, std::vector<int>> dyn_nodes_decay; 
     };
 
 }

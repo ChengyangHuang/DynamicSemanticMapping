@@ -44,6 +44,7 @@ namespace semantic_bki {
          */
         void update(std::vector<float>& ybars);
         void update_decay(std::vector<float>& ybars, std::vector<int> dyn_classes);
+ 
         /**
          * Set alpha values directly for a class
          */

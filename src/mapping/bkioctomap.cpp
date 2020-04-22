@@ -488,6 +488,20 @@ namespace semantic_bki {
                 xs.push_back(p.z());
             }
 
+            // Decay term begin
+            // std::unordered_map<BlockHashKey, std::vector<int>>::iterator dyn_it;
+            for (auto& m : dyn_nodes_decay)
+            {
+                // for (auto& n : m.second)
+                // {
+                auto block = Block(hash_key_to_block(m.first));
+                for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
+
+                }
+                // }
+            }
+            // Decay term end
+
             ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
                 auto bgk = bgk_arr.find(*block_it);
@@ -498,6 +512,7 @@ namespace semantic_bki {
 		            bgk->second->predict(xs, ybars);
 
                 int j = 0;
+                vector<int> dyn_nodes_indices;
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
 
                     //std::cout << "enter node update block\n";
@@ -516,7 +531,12 @@ namespace semantic_bki {
                     // std::copy(pt_as_vec.begin(), pt_as_vec.end(), pt.begin());
                     /////// KD TREES ////////
                     
+
+                    
+
+
                     int k = 0;
+                    bool isJIn = false;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
                         if (ybars[j][*dc] > 0.0) {
 #ifdef OPENMP
@@ -526,9 +546,14 @@ namespace semantic_bki {
                             found_dynamic = true;
                             dyn_classes_measured.push_back(k);
                             dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
+                            if (!isJIn){
+                                dyn_indices.push_back(j);
+                                isJIn = true;
+                            }
                             };
                         }
                     }
+                    dyn_nodes_indices.emplace(key, dyn_indices);
 
                     if (found_dynamic && !dyn_nodes.empty) {
 
