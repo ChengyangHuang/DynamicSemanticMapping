@@ -498,18 +498,23 @@ namespace semantic_bki {
 		            bgk->second->predict(xs, ybars);
 
                 int j = 0;
-                vector<int> dyn_indices;
+                // vector<int> dyn_indices;
+                vector<SemanticOcTreeNode*>  decay_nodes_Ptrs;
+                // vector<SemanticOcTreeNode>  decay_nodes;
+
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
 
                     //std::cout << "enter node update block\n";
 
                     SemanticOcTreeNode &node = leaf_it.get_node();
+                    SemanticOcTreeNode* nodePtr = &node;
+
                     // Only need to update if kernel density total kernel density est > 0
                     //if (ybar[j] > 0.0)
 
                     bool found_dynamic = false;
                     vector<int> dyn_classes_measured;
-
+                    
                     /////// KD TREES ////////
                     // point3f pt_as_vec3 = block->get_loc(leaf_it);
                     // Point<3> pt;
@@ -518,7 +523,6 @@ namespace semantic_bki {
                     /////// KD TREES ////////
                     
                     int k = 0;
-                    bool isJIn = false;
                     for (auto dc = dyn_classes.cbegin(); dc != dyn_classes.cend(); ++dc, ++k) {
                         if (ybars[j][*dc] > 0.0) {
 #ifdef OPENMP
@@ -528,11 +532,24 @@ namespace semantic_bki {
                             found_dynamic = true;
                             dyn_classes_measured.push_back(k);
                             dyn_nodes.add_node(k, node, block->get_loc(leaf_it));
-                            if (!isJIn){
-                                dyn_indices.push_back(j);
-                                isJIn = true;
-                            }
                             };
+                        }
+                    }
+
+                    if(found_dynamic){
+                        // dyn_indices.push_back(j);
+
+                        // decay_nodes_Ptrs.push_back(nodePtr);
+                        // dyn_nodes_decay map does not have this Block 
+                        if (dyn_nodes_decay.find(key) == dyn_nodes_decay.end()){
+                            dyn_nodes_decay.emplace(key, decay_nodes_Ptrs);
+                            // dyn_nodes_decay.emplace(key, decay_nodes.push_back(node));
+                        }
+                        // else{
+                        //     dyn_nodes_decay[key].push_back(node);
+                        // }
+                        if(std::find(dyn_nodes_decay[key].begin(), dyn_nodes_decay[key].end(), nodePtr) == dyn_nodes_decay[key].end()){
+                            dyn_nodes_decay[key].push_back(nodePtr);
                         }
                     }
 
@@ -558,6 +575,22 @@ namespace semantic_bki {
                         //bool nnc = nearest_node_class >=0;
                         /////// KD TREES ////////
 
+                        // // dyn_indices.push_back(j);
+
+                        // // decay_nodes_Ptrs.push_back(nodePtr);
+                        // // dyn_nodes_decay map does not have this Block 
+                        // if (dyn_nodes_decay.find(key) == dyn_nodes_decay.end()){
+                        //     dyn_nodes_decay.emplace(key, decay_nodes_Ptrs);
+                        //     // dyn_nodes_decay.emplace(key, decay_nodes.push_back(node));
+                        // }
+                        // // else{
+                        // //     dyn_nodes_decay[key].push_back(node);
+                        // // }
+                        // if(std::find(dyn_nodes_decay[key].begin(), dyn_nodes_decay[key].end(), nodePtr) == dyn_nodes_decay[key].end()){
+                        //     dyn_nodes_decay[key].push_back(nodePtr);
+                        // }
+                        
+
                         std::pair<SemanticOcTreeNode, double> nearest = dyn_nodes.find_nearest(dyn_classes_measured, block->get_loc(leaf_it));
 
                         double max_distance = 1.0;
@@ -571,26 +604,29 @@ namespace semantic_bki {
                             // TODO: set nodes velocity using motion model
 
                         }
-
+                    
                     }
                     node.update(ybars[j]);
                 }
-                // Store Dynamic nodes
-                if (dyn_nodes_decay.find(key) == dyn_nodes_decay.end()){
-                    if (!dyn_indices.empty())
-                        dyn_nodes_decay.emplace(key, dyn_indices);
-                }
-                else{
-                    if (!dyn_indices.empty()){
-                        for (auto& idx : dyn_indices){
-                            if(std::find(dyn_nodes_decay[key].begin(), dyn_nodes_decay[key].end(), idx) == dyn_nodes_decay[key].end())
-                                dyn_nodes_decay[key].push_back(idx);
-                        }
-                    }
-                        
-                }
-                   
-                
+                // // Store Dynamic nodes
+                // // Block not exsits in dyn_nodes_decay
+                // if (dyn_nodes_decay.find(key) == dyn_nodes_decay.end()){
+                //     // if (!dyn_indices.empty())
+                //     //     dyn_nodes_decay.emplace(key, dyn_indices);
+                //     if (!decay_nodes.empty())
+                //         dyn_nodes_decay.emplace(key, decay_nodes);
+                // }
+                // else{
+                //     if (!decay_nodes.empty()){
+                //         // for (auto& idx : dyn_indices){
+                //         //     if(std::find(dyn_nodes_decay[key].begin(), dyn_nodes_decay[key].end(), idx) == dyn_nodes_decay[key].end())
+                //         //         dyn_nodes_decay[key].push_back(idx);
+                //         // }
+                //         // if(std::find(decay_nodes.begin(), decay_nodes.end(), nodePtr) == decay_nodes.end()){
+                //         //     dyn_nodes_decay[key].push_back(nodePtr);
+                //         // }
+                //     }    
+                // }              
             }
         }  
 
@@ -624,16 +660,37 @@ namespace semantic_bki {
             std::cout << "block arr size: " << block_arr.size() << std::endl;
             for (auto& m : dyn_nodes_decay)
             {
-                vector<int> indices = m.second;
-                Block *block = block_arr[m.first];
-                int j = 0;
-                // Every node have dynamic classes
-                for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
-                    if(std::find(indices.begin(), indices.end(), j)!=indices.end()){
-                        SemanticOcTreeNode &node = leaf_it.get_node();
-                        node.decay_alphas(dyn_classes);
-                    }
+                // vector<int> indices = m.second;
+                // Block *block = block_arr[m.first];
+                // int j = 0;
+
+                // // Every node have dynamic classes
+                // for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
+                //     if(std::find(m.second.begin(), m.second.end(), j) != m.second.end()) {
+                //         SemanticOcTreeNode &node = leaf_it.get_node();
+                //         node.decay_alphas(dyn_classes);
+                //     }
+                // }
+                bool ifKeyDyn = false;
+                vector<SemanticOcTreeNode*>::iterator node_it;
+                for (node_it = m.second.begin(); node_it != m.second.end(); node_it++) {
+                // for (auto n : m.second){
+                    // SemanticOcTreeNode* node_null = 0;
+                    // bool ifdyn = node_null->decay_alphas(dyn_classes);
+                    bool ifdyn = (*node_it)->decay_alphas(dyn_classes);
+                    // if (ifdyn){
+                    //     ifKeyDyn = true;
+                    // }
+                    // else{
+                    //     m.second.erase(node_it);
+                    // }
                 }
+                // if(!ifKeyDyn){
+                //     dyn_nodes_decay.erase(m.first);
+                // }
+                // for (auto& n : m.second){
+                //     n.decay_alphas(dyn_classes);
+                // }
 
             }
     }

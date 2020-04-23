@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <iostream>
+#include <vector>
 
 #include "bkioctree_node.h"
 
@@ -57,12 +58,35 @@ namespace semantic_bki {
       }
     }
 
-    void Semantics::decay_alphas(std::vector<int> dyn_classes){
-      float thres = 10.0;
+    bool Semantics::decay_alphas(std::vector<int> dyn_classes){
+      float thres = 25.0;
+      bool ifDyn = false;
+
       for (int i = 0; i < dyn_classes.size(); i++) {
-        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+        // Uncomment the line below to use decay by substraction
+        // (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+
+        // Uncomment the line below to use decay by Division
+        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] /10.0, ifDyn=true) : (ms[dyn_classes[i]] = 0.0);
+        // std::cout << ms[dyn_classes[i]]<< ' ';
+        
+        // Uncomment the line below to remove the tail of the car clearly
         // ms[dyn_classes[i]] = 0.0;
         // std::cout << "decay alpha done" << std::endl;
       }
+
+      // std::cout << std::endl;
+
+      std::vector<float> probs(num_class);
+      get_probs(probs);
+
+      semantics = std::distance(probs.begin(), std::max_element(probs.begin(), probs.end()));
+
+      if (semantics == 0)
+        state = State::FREE;
+      else
+        state = State::OCCUPIED;
+
+      return ifDyn;
     }
 }

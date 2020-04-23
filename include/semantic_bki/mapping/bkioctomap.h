@@ -387,7 +387,7 @@ namespace semantic_bki {
         unsigned short block_depth;
         std::unordered_map<BlockHashKey, Block *> block_arr;
         MyRTree rtree;
-        std::unordered_map<BlockHashKey, std::vector<int>> dyn_nodes_decay; 
+        std::unordered_map<BlockHashKey, std::vector<SemanticOcTreeNode*>> dyn_nodes_decay; 
     };
 
 }
