@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <set>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include "rtree.h"
@@ -388,6 +389,7 @@ namespace semantic_bki {
         std::unordered_map<BlockHashKey, Block *> block_arr;
         MyRTree rtree;
         std::unordered_map<BlockHashKey, std::vector<SemanticOcTreeNode*>> dyn_nodes_decay; 
+        std::set<BlockHashKey> decay_keys;
     };
 
 }

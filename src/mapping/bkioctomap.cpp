@@ -537,6 +537,7 @@ namespace semantic_bki {
                     }
 
                     if(found_dynamic){
+                        // decay_keys.insert(key);
                         // dyn_indices.push_back(j);
 
                         // decay_nodes_Ptrs.push_back(nodePtr);
@@ -656,8 +657,23 @@ namespace semantic_bki {
 
     void SemanticBKIOctoMap::dynamic_decay(std::vector<int> dyn_classes){
             //  Everyblock have been seen
-            std::cout << "unordered map size: " << dyn_nodes_decay.size() << std::endl;
+            std::cout << "decay block size: " << dyn_nodes_decay.size() << std::endl;
             std::cout << "block arr size: " << block_arr.size() << std::endl;
+            // for (auto& k : decay_keys){
+            //     Block *dyn_block = block_arr[k];
+            //     for (auto leaf_it = dyn_block->begin_leaf(); leaf_it != dyn_block->end_leaf(); ++leaf_it) {
+            //         SemanticOcTreeNode &node = leaf_it.get_node();
+            //         for (int i = 0; i < dyn_classes.size(); i++) {
+            //             if(node.get_semantics() == dyn_classes[i]){
+            //                 node.decay_alphas(dyn_classes);
+            //                 break;
+            //             }
+            //         }
+                    
+            //     }
+
+            // }
+
             for (auto& m : dyn_nodes_decay)
             {
                 // vector<int> indices = m.second;
