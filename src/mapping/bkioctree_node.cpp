@@ -60,7 +60,13 @@ namespace semantic_bki {
     void Semantics::decay_alphas(std::vector<int> dyn_classes){
       float thres = 10.0;
       for (int i = 0; i < dyn_classes.size(); i++) {
-        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+        // Uncomment the line below to use decay by substraction
+        // (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+
+        // Uncomment the line below to use decay by Division
+        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] /2.0) : (ms[dyn_classes[i]] = 0.0);
+
+        // Uncomment the line below to remove the tail of the car clearly
         // ms[dyn_classes[i]] = 0.0;
         // std::cout << "decay alpha done" << std::endl;
       }
