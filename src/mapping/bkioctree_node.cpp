@@ -59,15 +59,15 @@ namespace semantic_bki {
     }
 
     bool Semantics::decay_alphas(std::vector<int> dyn_classes){
-      float thres = 25.0;
+      float thres = 1.0;
       bool ifDyn = false;
 
       for (int i = 0; i < dyn_classes.size(); i++) {
         // Uncomment the line below to use decay by substraction
-        // (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
+        // (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] = ms[dyn_classes[i]] - thres) : (ms[dyn_classes[i]] = 0.0);
 
         // Uncomment the line below to use decay by Division
-        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] /10.0, ifDyn=true) : (ms[dyn_classes[i]] = 0.0);
+        (ms[dyn_classes[i]] > thres) ? (ms[dyn_classes[i]] = ms[dyn_classes[i]] /1.5, ifDyn=true) : (ms[dyn_classes[i]] = 0.0);
         // std::cout << ms[dyn_classes[i]]<< ' ';
         
         // Uncomment the line below to remove the tail of the car clearly
