@@ -54,6 +54,8 @@ namespace semantic_bki {
          */
         bool decay_alphas(std::vector<int> dyn_classes);
         
+        void set_alpha(int cl, std::vector<float>& alphas);
+
         /// clear alpha for a particular class
         void clear_class(int cl);
 

@@ -8,6 +8,9 @@
 #include "KDTree.h"
 #include "dyn_nodes.h"
 
+#include <string>
+#include <fstream>
+
 using std::vector;
 
 // #define DEBUG true;
@@ -467,6 +470,8 @@ namespace semantic_bki {
         //vector<vector<std::pair<Point<3>, int>>> dataset(dyn_classes.size());
         /////// KD TREES ////////
 
+        //vector<vector<double>> distances(dyn_classes.size());
+
 #ifdef OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
@@ -545,6 +550,7 @@ namespace semantic_bki {
                             };
                         } 
                         else if (measured) {
+                            // TODO: clear this after we do all of the updates?
                             // clear alpha for class *dc
                             node.clear_class(*dc);
                         }
@@ -585,17 +591,26 @@ namespace semantic_bki {
                         /////// KD TREES ////////
                         
                         std::pair<SemanticOcTreeNode, double> nearest = dyn_nodes.find_nearest(dyn_classes_measured, block->get_loc(leaf_it));
+    
+                        double max_dist_prior = 1.0;
+                        vector<double> max_distances = {10.0, 7.5, 2.0, 1.5, 5.0, 6.5, 11.0, 2.0, 1.5};
+// #ifdef OPENMP
+// #pragma omp critical
+// #endif
+//                         {
+//                             for (int k = 0; k < dyn_classes_measured.size(); k++) {
+//                                 distances[dyn_classes_measured[k].first].push_back(nearest.second);
+//                             }
+//                         };
 
-                        double max_distance = 1.0;
-                        if ( nearest.second < max_distance) {
-                            SemanticOcTreeNode prev_node = nearest.first;
+                        SemanticOcTreeNode prev_node = nearest.first;
 
-                            // update using that nodes alphas
-                            // TODO: only update alphas for classes that were measured
-                            node.set_alphas(dyn_classes_measured, prev_node.ms);
-
-                            // TODO: set nodes velocity using motion model
-
+                        // update using that nodes alphas
+                        // TODO: only update alphas for classes that were measured
+                        for(int k = 0; k < dyn_classes_measured.size(); k++){
+                            if(nearest.second < max_distances[dyn_classes_measured[k].first]){
+                                node.set_alpha(dyn_classes_measured[k].second, prev_node.ms);
+                            }
                         }
                     
                     }
@@ -603,6 +618,17 @@ namespace semantic_bki {
                 }             
             }
         }  
+
+        // for (int k = 0; k < dyn_classes.size(); k++) {
+        //     if (distances[k].size() > 0) {
+        //         std::string path = "/home/cknuth/win2020/mobrob/catkin_ws/distances" + std::to_string(dyn_classes[k]) + std::string(".txt");
+
+        //         std::ofstream output_file;
+        //         output_file.open(path, std::ios_base::app);
+        //         std::ostream_iterator<double> output_iterator(output_file, "\n");
+        //         std::copy(distances[k].begin(), distances[k].end(), output_iterator);
+        //     }
+        // }
 
         dyn_nodes.update();
 
