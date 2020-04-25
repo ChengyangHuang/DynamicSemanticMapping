@@ -89,6 +89,11 @@ namespace semantic_bki {
 
       return ifDyn;
     }
+    
+    void Semantics::set_alpha(int cl, std::vector<float>& alphas) {
+      assert(alphas.size() == num_class);
+      ms[cl] = alphas[cl];
+    }
 
     void Semantics::clear_class(int cl) {
       ms[cl] = prior;
