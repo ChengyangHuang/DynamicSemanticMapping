@@ -1,6 +1,6 @@
 # Dynamic Continuous  Semantic  Counting  Sensor  Model 
 
-This method is originally produced for a final project in Mobile Robotics at the University of Michigan in Winter 2020. Our method extends on the earlier continuous semantic mapping technique BKISemanticMapping ([code](https://github.com/ganlumomo/BKISemanticMapping) and [paper](https://arxiv.org/pdf/1909.04631.pdf)). We extend their method to explicity consider dynamic obstacles in the scene. For more information for the supporting theory and results see our paper (LINK) and video (LINK). Our code is built on top of the BKISemanticMapping codebase.
+This method is originally produced for a final project in Mobile Robotics at the University of Michigan in Winter 2020. Our method extends on the earlier continuous semantic mapping technique BKISemanticMapping ([code](https://github.com/ganlumomo/BKISemanticMapping) and [paper](https://arxiv.org/pdf/1909.04631.pdf)). We extend their method to explicity consider dynamic obstacles in the scene. For more information for the supporting theory and results see our [paper](https://github.com/ChengyangHuang/DynamicSemanticMapping/blob/master/Mobile_Robotics_Final_Report__Dynamic_Semantic_Mapping.pdf) and [video](https://youtu.be/dcQJYqtgdHA). Our code is built on top of the BKISemanticMapping codebase.
 
 ## Getting Started
 
